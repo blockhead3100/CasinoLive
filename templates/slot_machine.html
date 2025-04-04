@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slot Machine</title>
+</head>
+<body>
+    <h1>Slot Machine</h1>
+    <p>Welcome, {{ user.username }}! Your current balance is ${{ user.balance }}.</p>
+
+    {% if result %}
+    <p>{{ result }}</p>
+    {% endif %}
+
+    <form method="POST">
+        <button type="submit">Spin the Slot Machine</button>
+    </form>
+
+    <a href="/">Back to Home</a>
+</body>
+</html>

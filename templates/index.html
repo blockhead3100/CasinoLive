@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Casino Live</title>
+</head>
+<body>
+    <h1>Welcome to Casino Live!</h1>
+    <form action="/register" method="POST">
+        <label for="username">Username:</label>
+        <input type="text" id="username" name="username" required>
+        <button type="submit">Register</button>
+    </form>
+    <h2>Users:</h2>
+    <ul>
+        {% for user in users %}
+        <li>
+            {{ user.username }} - Balance: ${{ user.balance }}
+            <a href="/roll-dice/{{ user.username }}">Play Dice Game</a> |
+            <a href="/slot-machine/{{ user.username }}">Play Slot Machine</a>
+        </li>
+        {% endfor %}
+    </ul>
+</body>
+</html>
