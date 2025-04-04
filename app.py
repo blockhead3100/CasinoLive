@@ -2,6 +2,7 @@ from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 import random
 import os
+from flask_migrate import Migrate
 
 app = Flask(__name__)
 
@@ -9,6 +10,7 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///casino.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
+migrate = Migrate(app, db)
 
 # Define a User model
 class User(db.Model):
@@ -50,13 +52,24 @@ def roll_dice(username):
         return f"User {username} not found!", 404
 
     if request.method == 'POST':
+        bet = request.form.get('bet')  # Safely get the 'bet' value
+        if not bet:
+            return "Bet amount is required!", 400
+        try:
+            bet = float(bet)
+        except ValueError:
+            return "Invalid bet amount!", 400
+
+        if bet < 1 or bet > user.balance:
+            return "Bet must be between $1 and your current balance!", 400
+
         dice_roll = random.randint(1, 6)
         if dice_roll > 3:
-            user.balance += 10  # Win $10
-            result = f"You rolled a {dice_roll}. You win $10!"
+            user.balance += bet
+            result = f"You rolled a {dice_roll}. You win ${bet}!"
         else:
-            user.balance -= 5  # Lose $5
-            result = f"You rolled a {dice_roll}. You lose $5."
+            user.balance -= bet
+            result = f"You rolled a {dice_roll}. You lose ${bet}."
         db.session.commit()
         return render_template('dice.html', user=user, result=result)
 
@@ -69,18 +82,25 @@ def slot_machine(username):
         return f"User {username} not found!", 404
 
     if request.method == 'POST':
-        # Simulate slot machine spin
+        bet = request.form.get('bet')  # Safely get the 'bet' value
+        if not bet:
+            return "Bet amount is required!", 400
+        try:
+            bet = float(bet)
+        except ValueError:
+            return "Invalid bet amount!", 400
+
+        if bet < 1 or bet > user.balance:
+            return "Bet must be between $1 and your current balance!", 400
+
         symbols = ['🍒', '🍋', '🍊', '⭐', '💎']
         spin = [random.choice(symbols) for _ in range(3)]
-
-        # Check if all symbols match
         if spin[0] == spin[1] == spin[2]:
-            user.balance += 50  # Win $50
-            result = f"Jackpot! You got {spin}. You win $50!"
+            user.balance += bet * 5  # Win 5x the bet amount
+            result = f"Jackpot! You got {spin}. You win ${bet * 5}!"
         else:
-            user.balance -= 10  # Lose $10
-            result = f"You got {spin}. You lose $10."
-
+            user.balance -= bet  # Lose the bet amount
+            result = f"You got {spin}. You lose ${bet}."
         db.session.commit()
         return render_template('slot_machine.html', user=user, result=result)
 
@@ -90,4 +110,11 @@ if __name__ == '__main__':
     if not os.path.exists('casino.db'):
         with app.app_context():
             db.create_all()  # Create database tables only if they don't exist
+
     app.run(debug=True)
+```
+<form method="POST">
+    <label for="bet">Bet Amount:</label>
+    <input type="number" id="bet" name="bet" min="1" required>
+    <button type="submit">Spin the Slot Machine</button>
+</form>
