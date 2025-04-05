@@ -1,39 +1,39 @@
 CasinoLive/
-├── app.py
-├── models.py
-├── login.py
-├── init_db.py
-├── Requirements.txt
-├── pytest.ini
-├── ReadMe.md
-├── .gitignore
-├── .vscode/
-│   └── settings.json
-├── migrations/
-│   ├── alembic.ini
-│   ├── env.py
-│   ├── script.py.mako
-│   └── README
-├── src/
-│   └── main.py
-├── static/
-│   └── styles.css
-├── templates/
-│   ├── auth/
-│   │   ├── login.html
-│   │   ├── register.html
-│   ├── games/
-│   │   ├── games.html
-│   │   ├── roll_dice.html
-│   ├── blackjack.html
-│   ├── blackjack_game.html
-│   ├── blackjack_result.html
-│   ├── dice.html
-│   ├── index.html
-│   ├── poker.html
-│   ├── poker_game.html
-│   ├── slot_machine.html
-│   ├── slot_machine_result.html
-│   └── base.html
-├── tests/
-│   └── test_app.py
+├── app.py                # Main entry point for the application (if used instead of models.py)
+├── models.py             # Contains the Flask app, database models, and routes
+├── login.py              # (Optional) Handles login-specific logic (if separated from models.py)
+├── init_db.py            # Script to initialize the database
+├── Requirements.txt      # List of Python dependencies for the project
+├── pytest.ini            # Configuration file for pytest
+├── ReadMe.md             # Documentation for the project
+├── .gitignore            # Specifies files and folders to ignore in Git
+├── .vscode/              # VS Code-specific settings
+│   └── settings.json     # VS Code workspace settings
+├── migrations/           # Flask-Migrate files for database migrations
+│   ├── alembic.ini       # Alembic configuration file
+│   ├── env.py            # Alembic environment file
+│   ├── script.py.mako    # Alembic script template
+│   └── README            # Documentation for migrations
+├── src/                  # Source code for additional modules
+│   └── main.py           # Main logic for the application (if separated from models.py)
+├── static/               # Static files (CSS, JavaScript, images)
+│   └── styles.css        # Main stylesheet for the application
+├── templates/            # HTML templates for the application
+│   ├── auth/             # Templates for authentication (login, register)
+│   │   ├── login.html    # Login page
+│   │   ├── register.html # Registration page
+│   ├── games/            # Templates for games
+│   │   ├── games.html    # Games list page
+│   │   ├── roll_dice.html # Dice roll game page
+│   ├── blackjack.html    # Blackjack game page
+│   ├── blackjack_game.html # Blackjack gameplay page
+│   ├── blackjack_result.html # Blackjack result page
+│   ├── dice.html         # Dice game page
+│   ├── index.html        # Home page
+│   ├── poker.html        # Poker game page
+│   ├── poker_game.html   # Poker gameplay page
+│   ├── slot_machine.html # Slot machine game page
+│   ├── slot_machine_result.html # Slot machine result page
+│   └── base.html         # Base template for the application
+├── tests/                # Unit tests for the application
+│   └── test_app.py       # Test cases for the application
