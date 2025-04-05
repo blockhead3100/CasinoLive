@@ -247,6 +247,14 @@ def blackjack():
     # Render the game page with the bet form
     return render_template('blackjack_game.html', user=user)
 
+@app.route('/games')
+def games():
+    user_id = session.get('user_id')
+    if not user_id:
+        return redirect(url_for('login'))
+    user = User.query.get(user_id)
+    return render_template('games/games.html', user=user)  # Matches the current location
+
 if __name__ == '__main__':
     if not os.path.exists('casino.db'):
         with app.app_context():

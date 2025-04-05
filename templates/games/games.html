@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+
+{% block title %}Games{% endblock %}
+
+{% block content %}
+<h2>Available Games</h2>
+<ul>
+    <li><a href="{{ url_for('roll_dice') }}">Roll Dice</a></li>
+    <li><a href="{{ url_for('slot_machine') }}">Slot Machine</a></li>
+    <li><a href="{{ url_for('blackjack') }}">Blackjack</a></li>
+    <li><a href="{{ url_for('poker', username=user.username) }}">Poker</a></li>
+</ul>
+<a href="{{ url_for('home') }}">Back to Home</a>
+{% endblock %}

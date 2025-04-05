@@ -4,11 +4,11 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{% block title %}CasinoLive{% endblock %}</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
     <header>
-        <div style="float: right;">
+        <div class="float-right">
             {% if user is defined and user %}
                 <p>Welcome, {{ user.username }} | Balance: ${{ user.balance }}</p>
                 <a href="{{ url_for('logout') }}">Logout</a>
@@ -20,12 +20,7 @@
         <h1>CasinoLive</h1>
         <nav>
             <a href="{{ url_for('home') }}">Home</a>
-            <a href="{{ url_for('roll_dice') }}">Roll Dice</a>
-            <a href="{{ url_for('slot_machine') }}">Slot Machine</a>
-            <a href="{{ url_for('blackjack') }}">Blackjack</a>
-            {% if user is defined and user %}
-                <a href="{{ url_for('poker', username=user.username) }}">Poker</a>
-            {% endif %}
+            <a href="{{ url_for('games') }}">Games</a>
         </nav>
     </header>
     <main>
