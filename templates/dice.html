@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dice Roll Game</title>
+    <link rel="stylesheet" href="/static/styles.css">
 </head>
 <body>
     <h1>Dice Roll Game</h1>
@@ -24,7 +25,7 @@
             required 
             oninput="validateBet()"
         >
-        <span id="error-message" style="color: red; display: none;">Invalid bet amount!</span>
+        <span id="error-message" class="error-message">Invalid bet amount!</span>
         <button type="submit">Roll the Dice</button>
     </form>
 

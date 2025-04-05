@@ -3,3 +3,8 @@
     padding: 10px;
     border: 1px solid black;
 }
+
+.error-message {
+    color: red;
+    display: none;
+}
