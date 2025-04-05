@@ -6,8 +6,8 @@ app = Flask(__name__)
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///C:/Users/Block/Documents/GitHub/CasinoLive/CasinoLive/casino.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
-db = SQLAlchemy()  # Create the SQLAlchemy instance without passing the app
-db.init_app(app)  # Initialize the app with the SQLAlchemy instance
+db = SQLAlchemy()
+db.init_app(app)
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -19,15 +19,14 @@ class User(db.Model):
 
 @app.route('/')
 def home():
-    return redirect(url_for('login'))  # Redirect to the login route
+    return redirect(url_for('login'))
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
-        # Add authentication logic here
-        if username == "test" and password == "password":  # Example logic
+        if username == "test" and password == "password":
             return jsonify({"message": f"Welcome, {username}!"})
         else:
             return jsonify({"error": "Invalid credentials"}), 401
@@ -38,7 +37,6 @@ def register():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
-        # Add registration logic here
         return jsonify({"message": f"User {username} registered successfully!"})
     return render_template('auth/register.html')
 
@@ -57,16 +55,16 @@ def bet():
 
 @app.route('/games')
 def games():
-    return render_template('games/games.html')  # Correct path to the games.html file
+    return render_template('games/games.html')
 
 @app.route('/roll_dice')
 def roll_dice():
-    return render_template('games/roll_dice.html')  # Replace with your actual roll dice page
+    return render_template('games/roll_dice.html')
 
 if __name__ == '__main__':
     if not os.path.exists('casino.db'):
-        with app.app_context():  # Ensure the app context is active
-            db.create_all()  # Create database tables only if they don't exist
-    print("Database initialized successfully!")
+        with app.app_context():
+            db.create_all()
+        print("Database initialized successfully!")
 
     app.run(debug=True)
