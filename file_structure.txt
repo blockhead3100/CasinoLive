@@ -1,0 +1,39 @@
+CasinoLive/
+├── app.py
+├── models.py
+├── login.py
+├── init_db.py
+├── Requirements.txt
+├── pytest.ini
+├── ReadMe.md
+├── .gitignore
+├── .vscode/
+│   └── settings.json
+├── migrations/
+│   ├── alembic.ini
+│   ├── env.py
+│   ├── script.py.mako
+│   └── README
+├── src/
+│   └── main.py
+├── static/
+│   └── styles.css
+├── templates/
+│   ├── auth/
+│   │   ├── login.html
+│   │   ├── register.html
+│   ├── games/
+│   │   ├── games.html
+│   │   ├── roll_dice.html
+│   ├── blackjack.html
+│   ├── blackjack_game.html
+│   ├── blackjack_result.html
+│   ├── dice.html
+│   ├── index.html
+│   ├── poker.html
+│   ├── poker_game.html
+│   ├── slot_machine.html
+│   ├── slot_machine_result.html
+│   └── base.html
+├── tests/
+│   └── test_app.py
