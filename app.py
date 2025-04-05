@@ -1,8 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, jsonify
 from flask_sqlalchemy import SQLAlchemy
 import random
 import os
 from flask_migrate import Migrate
+import requests  # Python equivalent of axios
 
 app = Flask(__name__)
 
@@ -105,6 +106,12 @@ def slot_machine(username):
         return render_template('slot_machine.html', user=user, result=result)
 
     return render_template('slot_machine.html', user=user)
+
+@app.route('/api/data', methods=['GET'])
+def fetch_data():
+    param = request.args.get('param', default='default_value')
+    response = requests.get(f'https://api.example.com/data?param={param}')
+    return jsonify(response.json())
 
 def some_function():
     pass  # Placeholder for future implementation
