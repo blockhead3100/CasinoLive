@@ -18,7 +18,9 @@
         <li>
             {{ user.username }} - Balance: ${{ user.balance }}
             <a href="/roll-dice/{{ user.username }}">Play Dice Game</a> |
-            <a href="/slot-machine/{{ user.username }}">Play Slot Machine</a>
+            <a href="/slot-machine/{{ user.username }}">Play Slot Machine</a> |
+            <a href="/poker/{{ user.username }}">Play Poker</a> |
+            <a href="/blackjack/{{ user.username }}">Play Blackjack</a>
         </li>
         {% endfor %}
     </ul>

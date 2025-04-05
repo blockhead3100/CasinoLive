@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, redirect, url_for, jsonify
+from flask import Flask, render_template, request, redirect, url_for, jsonify, session
 from flask_sqlalchemy import SQLAlchemy
 import random
 import os
@@ -6,6 +6,7 @@ from flask_migrate import Migrate
 import requests  # Python equivalent of axios
 
 app = Flask(__name__)
+app.secret_key = 'supersecretkey'  # Needed for session management
 
 # Database configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///casino.db'
@@ -113,6 +114,71 @@ def fetch_data():
     response = requests.get(f'https://api.example.com/data?param={param}')
     return jsonify(response.json())
 
+# Add Poker and Blackjack routes
+@app.route('/poker/<username>', methods=['GET', 'POST'])
+def poker(username):
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return f"User {username} not found!", 404
+
+    if request.method == 'POST':
+        # Poker logic placeholder
+        return "Poker game logic goes here."
+
+    return render_template('poker.html', user=user)
+
+@app.route('/blackjack/<username>', methods=['GET', 'POST'])
+def blackjack(username):
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return f"User {username} not found!", 404
+
+    if request.method == 'POST':
+        # Retrieve game state from session
+        deck = session.get('deck', [])
+        player_hand = session.get('player_hand', [])
+        dealer_hand = session.get('dealer_hand', [])
+
+        # Handle player action
+        action = request.form.get('action')
+        if action == 'hit':
+            player_hand.append(deck.pop())
+            if sum(player_hand) > 21:  # Player busts
+                return f"You busted! Dealer wins. Your hand: {player_hand}, Dealer's hand: {dealer_hand}"
+        elif action == 'stand':
+            # Dealer's turn
+            while sum(dealer_hand) < 17:
+                dealer_hand.append(deck.pop())
+            # Determine winner
+            player_total = sum(player_hand)
+            dealer_total = sum(dealer_hand)
+            if dealer_total > 21 or player_total > dealer_total:
+                return f"You win! Your hand: {player_hand}, Dealer's hand: {dealer_hand}"
+            elif player_total < dealer_total:
+                return f"Dealer wins! Your hand: {player_hand}, Dealer's hand: {dealer_hand}"
+            else:
+                return f"It's a tie! Your hand: {player_hand}, Dealer's hand: {dealer_hand}"
+
+        # Save updated game state
+        session['deck'] = deck
+        session['player_hand'] = player_hand
+        session['dealer_hand'] = dealer_hand
+
+        return render_template('blackjack_game.html', player_hand=player_hand, dealer_hand=[dealer_hand[0]])
+
+    # Initialize a new game
+    deck = [2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 11] * 4
+    random.shuffle(deck)
+    player_hand = [deck.pop(), deck.pop()]
+    dealer_hand = [deck.pop(), deck.pop()]
+
+    # Save game state
+    session['deck'] = deck
+    session['player_hand'] = player_hand
+    session['dealer_hand'] = dealer_hand
+
+    return render_template('blackjack_game.html', player_hand=player_hand, dealer_hand=[dealer_hand[0]])
+
 def some_function():
     pass  # Placeholder for future implementation
 
@@ -120,10 +186,6 @@ if __name__ == '__main__':
     if not os.path.exists('casino.db'):
         with app.app_context():
             db.create_all()  # Create database tables only if they don't exist
-
+    
     app.run(debug=True)
-<form method="POST">
-    <label for="bet">Bet Amount:</label>
-    <input type="number" id="bet" name="bet" min="1" required>
-    <button type="submit">Spin the Slot Machine</button>
-</form>
+

@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poker Game</title>
+</head>
+<body>
+    <h1>Poker</h1>
+    <p>Your Hand: {{ player_hand }}</p>
+    <p>Community Cards: {{ community_cards }}</p>
+    <form method="POST">
+        <button type="submit">Reveal Next Stage</button>
+    </form>
+    <a href="/">Back to Home</a>
+</body>
+</html>
+
+@app.route('/slot-machine/<username>', methods=['POST'])
+def slot_machine(username):
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return f"User {username} not found!", 404
+
+    # Symbols for the slot machine
+    symbols = ["🍒", "🍋", "🍊", "🍉", "⭐", "💎"]
+    reels = [random.choice(symbols) for _ in range(3)]
+
+    # Check for a win
+    if len(set(reels)) == 1:
+        result = "Jackpot! You win $100!"
+        user.balance += 100
+    elif len(set(reels)) == 2:
+        result = "Small win! You win $10!"
+        user.balance += 10
+    else:
+        result = "You lose! Try again."
+        user.balance -= 5
+
+    db.session.commit()
+    return render_template('slot_machine_result.html', reels=reels, result=result, user=user)
