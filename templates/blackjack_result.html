@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blackjack Result</title>
+</head>
+<body>
+    <h1>Blackjack Result</h1>
+    <p>{{ result }}</p>
+    <p>Your Hand: {{ player_hand }}</p>
+    <p>Dealer's Hand: {{ dealer_hand }}</p>
+    <a href="/blackjack/{{ user.username }}">Play Again</a>
+    <a href="/">Back to Home</a>
+</body>
+</html>

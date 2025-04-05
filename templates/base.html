@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}CasinoLive{% endblock %}</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <header>
+        <div style="float: right;">
+            {% if user is defined and user %}
+                <p>Welcome, {{ user.username }} | Balance: ${{ user.balance }}</p>
+                <a href="{{ url_for('logout') }}">Logout</a>
+            {% else %}
+                <a href="{{ url_for('login') }}">Login</a>
+                <a href="{{ url_for('register') }}">Register</a>
+            {% endif %}
+        </div>
+        <h1>CasinoLive</h1>
+        <nav>
+            <a href="{{ url_for('home') }}">Home</a>
+            <a href="{{ url_for('roll_dice') }}">Roll Dice</a>
+            <a href="{{ url_for('slot_machine') }}">Slot Machine</a>
+            <a href="{{ url_for('blackjack') }}">Blackjack</a>
+            {% if user is defined and user %}
+                <a href="{{ url_for('poker', username=user.username) }}">Poker</a>
+            {% endif %}
+        </nav>
+    </header>
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+    <footer>
+        <p>&copy; 2025 CasinoLive</p>
+    </footer>
+</body>
+</html>
