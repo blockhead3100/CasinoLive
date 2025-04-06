@@ -6,7 +6,8 @@ import random
 import os
 
 app = Flask(__name__)
-app.secret_key = 'supersecretkey'  # Needed for session management
+app.secret_key = 'supersecretkey'  # Needed for session management#-
+app.secret_key = os.environ.get('SECRET_KEY', 'fallback_secret_key')#+
 
 # Database configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///casino.db'
@@ -42,8 +43,16 @@ def register():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
-        # Registration logic here
-    return render_template('auth/register.html')
+        if username and password:
+            hashed_password = generate_password_hash(password)
+            new_user = User(username=username, password=hashed_password)
+            db.session.add(new_user)
+            db.session.commit()
+            flash("Registration successful! Please log in.")
+            return redirect(url_for('login'))
+        else:
+            flash("Username and password are required!")
+    return render_template('register.html')  # Ensure this template exists in the templates folder
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
