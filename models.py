@@ -9,6 +9,18 @@ app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy()
 db.init_app(app)
 
+if not os.path.exists('casino.db'):
+    with app.app_context():
+        db.create_all()  # Place a breakpoint here
+        print("Database initialized successfully!")
+
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///C:/Users/Block/Documents/GitHub/CasinoLive/CasinoLive/casino.db'
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+db = SQLAlchemy()
+db.init_app(app)
+
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(80), unique=True, nullable=False)
