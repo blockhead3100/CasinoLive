@@ -42,20 +42,7 @@ def register():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
-        if username and password:
-            existing_user = User.query.filter_by(username=username).first()
-            if not existing_user:
-                hashed_password = generate_password_hash(password, method='sha256')
-                new_user = User(username=username, password=hashed_password, balance=100.0)
-                db.session.add(new_user)
-                db.session.commit()
-                flash("Account created successfully! Please log in.")
-                return redirect(url_for('login'))
-            else:
-                flash("Username already exists. Please choose a different one.")
-                return redirect(url_for('register'))
-        else:
-            flash("Username and password are required!")
+        # Registration logic here
     return render_template('auth/register.html')
 
 @app.route('/login', methods=['GET', 'POST'])
