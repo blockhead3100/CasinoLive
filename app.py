@@ -43,16 +43,8 @@ def register():
     if request.method == 'POST':
         username = request.form.get('username')
         password = request.form.get('password')
-        if username and password:
-            hashed_password = generate_password_hash(password)
-            new_user = User(username=username, password=hashed_password)
-            db.session.add(new_user)
-            db.session.commit()
-            flash("Registration successful! Please log in.")
-            return redirect(url_for('login'))
-        else:
-            flash("Username and password are required!")
-    return render_template('register.html')  # Ensure this template exists in the templates folder
+        # Registration logic here
+    return render_template('auth/register.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
