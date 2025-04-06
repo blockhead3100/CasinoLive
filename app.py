@@ -1,9 +1,9 @@
-from flask import Flask, render_template, request, redirect, url_for, session
+from flask import Flask, render_template, request, redirect, url_for, session, flash
 from flask_sqlalchemy import SQLAlchemy
-import random
-import os
 from flask_migrate import Migrate
 from werkzeug.security import generate_password_hash, check_password_hash
+import random
+import os
 
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'  # Needed for session management
@@ -40,8 +40,8 @@ def home():
 @app.route('/register', methods=['GET', 'POST'])
 def register():
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
+        username = request.form.get('username')
+        password = request.form.get('password')
         if username and password:
             existing_user = User.query.filter_by(username=username).first()
             if not existing_user:
@@ -49,22 +49,26 @@ def register():
                 new_user = User(username=username, password=hashed_password, balance=100.0)
                 db.session.add(new_user)
                 db.session.commit()
+                flash("Account created successfully! Please log in.")
                 return redirect(url_for('login'))
             else:
-                return "Username already exists!", 400
+                flash("Username already exists. Please choose a different one.")
+                return redirect(url_for('register'))
+        else:
+            flash("Username and password are required!")
     return render_template('auth/register.html')
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     if request.method == 'POST':
-        username = request.form['username']
-        password = request.form['password']
+        username = request.form.get('username')
+        password = request.form.get('password')
         user = User.query.filter_by(username=username).first()
         if user and check_password_hash(user.password, password):
             session['user_id'] = user.id
             return redirect(url_for('home'))
         else:
-            return "Invalid username or password!", 401
+            flash("Invalid username or password!")
     return render_template('auth/login.html')
 
 @app.route('/logout')
@@ -82,14 +86,17 @@ def roll_dice():
     if request.method == 'POST':
         bet = request.form.get('bet')
         if not bet:
-            return "Bet amount is required!", 400
+            flash("Bet amount is required!")
+            return redirect(url_for('roll_dice'))
         try:
             bet = float(bet)
         except ValueError:
-            return "Invalid bet amount!", 400
+            flash("Invalid bet amount!")
+            return redirect(url_for('roll_dice'))
 
         if bet < 1 or bet > user.balance:
-            return "Bet must be between $1 and your current balance!", 400
+            flash("Bet must be between $1 and your current balance!")
+            return redirect(url_for('roll_dice'))
 
         dice_roll = random.randint(1, 6)
         if dice_roll > 3:
@@ -139,14 +146,17 @@ def poker():
     if request.method == 'POST':
         bet = request.form.get('bet')
         if not bet:
-            return "Bet amount is required!", 400
+            flash("Bet amount is required!")
+            return redirect(url_for('poker'))
         try:
             bet = float(bet)
         except ValueError:
-            return "Invalid bet amount!", 400
+            flash("Invalid bet amount!")
+            return redirect(url_for('poker'))
 
         if bet < 1 or bet > user.balance:
-            return "Bet must be between $1 and your current balance!", 400
+            flash("Bet must be between $1 and your current balance!")
+            return redirect(url_for('poker'))
 
         stage = session.get('stage', 0)
         community_cards = session.get('community_cards', [])
@@ -205,14 +215,17 @@ def blackjack():
     if request.method == 'POST':
         bet = request.form.get('bet')
         if not bet:
-            return "Bet amount is required!", 400
+            flash("Bet amount is required!")
+            return redirect(url_for('blackjack'))
         try:
             bet = float(bet)
         except ValueError:
-            return "Invalid bet amount!", 400
+            flash("Invalid bet amount!")
+            return redirect(url_for('blackjack'))
 
         if bet < 1 or bet > user.balance:
-            return "Bet must be between $1 and your current balance!", 400
+            flash("Bet must be between $1 and your current balance!")
+            return redirect(url_for('blackjack'))
 
         # Initialize the game
         deck = session.get('deck', [2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 11] * 4)
@@ -253,7 +266,7 @@ def games():
     if not user_id:
         return redirect(url_for('login'))
     user = User.query.get(user_id)
-    return render_template('games/games.html', user=user)  # Matches the current location
+    return render_template('games/games.html', user=user)
 
 if __name__ == '__main__':
     if not os.path.exists('casino.db'):
