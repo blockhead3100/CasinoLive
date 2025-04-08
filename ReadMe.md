@@ -25,7 +25,7 @@ CasinoLive is a social casino game designed to provide an authentic casino exper
 ### Installation
 1. Clone the repository:
    ```bash
-   git clone https://github.com/yourusername/CasinoLive.git
+   git clone https://github.com/KJ-LANDSCAPING/CasinoLive.git
    cd CasinoLive
    ```
 
