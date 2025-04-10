@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poker Result</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Poker Game Result</h1>
+        <p>{{ result }}</p>
+        <h2>Your Hand:</h2>
+        <ul>
+            {% for card in player_hand %}
+                <li>{{ card }}</li>
+            {% endfor %}
+        </ul>
+        <h2>Community Cards:</h2>
+        <ul>
+            {% for card in community_cards %}
+                <li>{{ card }}</li>
+            {% endfor %}
+        </ul>
+        <a href="{{ url_for('poker') }}">Play Again</a>
+        <a href="{{ url_for('games') }}">Back to Games</a>
+    </div>
+</body>
+</html>

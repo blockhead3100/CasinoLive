@@ -1,0 +1,23 @@
+services:
+  app:
+    build:
+      context: .
+    ports:
+      - "5000:5000"
+    restart: unless-stopped
+    init: true
+    environment:
+      FLASK_APP: app.py
+    depends_on:
+      - database
+  database:
+    image: postgres:latest
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: casino
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    restart: unless-stopped
+volumes:
+  db_data:

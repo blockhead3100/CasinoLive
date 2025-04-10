@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Games</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to the Games Section, {{ user.username }}!</h1>
+        <p>Select a game to play:</p>
+        <ul>
+            <li><a href="{{ url_for('roll_dice') }}">Dice Game</a></li>
+            <li><a href="{{ url_for('slot_machine') }}">Slot Machine</a></li>
+            <li><a href="{{ url_for('poker') }}">Poker</a></li>
+            <li><a href="{{ url_for('blackjack') }}">Blackjack</a></li>
+        </ul>
+    </div>
+</body>
+</html>

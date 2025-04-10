@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Poker Game</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Welcome to the Poker Game, {{ user.username }}!</h1>
+        <form method="POST">
+            <label for="bet">Enter your bet:</label>
+            <input type="number" id="bet" name="bet" min="1" max="{{ user.balance }}" required>
+            <button type="submit">Place Bet</button>
+        </form>
+
+        {% if player_hand %}
+            <h2>Your Hand: {{ player_hand }}</h2>
+            <h2>Community Cards: {{ community_cards }}</h2>
+        {% endif %}
+
+        {% if result %}
+            <h2>Result: {{ result }}</h2>
+        {% endif %}
+        
+        <a href="{{ url_for('games') }}">Back to Games</a>
+    </div>
+</body>
+</html>

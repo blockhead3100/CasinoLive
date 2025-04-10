@@ -4,6 +4,11 @@ from flask_migrate import Migrate
 from werkzeug.security import generate_password_hash, check_password_hash
 import random
 import os
+import logging
+
+# Add this after importing os
+if not os.environ.get('SECRET_KEY'):
+    logging.warning("SECRET_KEY is not set in the environment. Using fallback key.")
 
 app = Flask(__name__)
 app.secret_key = 'supersecretkey'  # Needed for session management#-
@@ -21,6 +26,7 @@ class User(db.Model):
     username = db.Column(db.String(80), unique=True, nullable=False)
     password = db.Column(db.String(200), nullable=False)  # Store hashed passwords
     balance = db.Column(db.Float, default=0.0)
+    is_admin = db.Column(db.Boolean, default=False)  # Add this field
 
 @app.context_processor
 def inject_user():
@@ -146,9 +152,16 @@ def poker():
             flash("Bet must be between $1 and your current balance!")
             return redirect(url_for('poker'))
 
+        # Ensure deck is initialized
+        deck = session.get('deck')
+        if not deck:
+            deck = [f"{rank}{suit}" for rank in "23456789TJQKA" for suit in "♠♥♦♣"]
+            random.shuffle(deck)
+            session['deck'] = deck
+
         stage = session.get('stage', 0)
         community_cards = session.get('community_cards', [])
-        deck = session.get('deck', [])
+        player_hand = session.get('player_hand', [])
 
         if stage == 0:
             community_cards.extend([deck.pop() for _ in range(3)])
@@ -157,7 +170,6 @@ def poker():
         elif stage == 2:
             community_cards.append(deck.pop())
         else:
-            player_hand = session.get('player_hand', [])
             winner = evaluate_poker_hand(player_hand, community_cards)
             if winner == "player":
                 user.balance += bet
@@ -172,8 +184,9 @@ def poker():
         session['community_cards'] = community_cards
         session['deck'] = deck
 
-        return render_template('poker_game.html', player_hand=session['player_hand'], community_cards=community_cards, user=user)
+        return render_template('poker_game.html', player_hand=player_hand, community_cards=community_cards, user=user)
 
+    # Initialize a new game
     deck = [f"{rank}{suit}" for rank in "23456789TJQKA" for suit in "♠♥♦♣"]
     random.shuffle(deck)
     player_hand = [deck.pop(), deck.pop()]
@@ -187,9 +200,10 @@ def poker():
     return render_template('poker_game.html', player_hand=player_hand, community_cards=community_cards, user=user)
 
 def evaluate_poker_hand(player_hand, community_cards):
+    # Placeholder logic for poker hand evaluation
     all_cards = player_hand + community_cards
     ranks = [card[:-1] for card in all_cards]
-    if len(set(ranks)) < len(ranks):
+    if len(set(ranks)) < len(ranks):  # Simple pair detection
         return "player"
     return "dealer"
 
@@ -216,13 +230,16 @@ def blackjack():
             return redirect(url_for('blackjack'))
 
         # Initialize the game
-        deck = session.get('deck', [2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 11] * 4)
-        random.shuffle(deck)
+        deck = session.get('deck')
+        if not deck:
+            deck = [2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 11] * 4
+            random.shuffle(deck)
+            session['deck'] = deck
+
         player_hand = session.get('player_hand', [deck.pop(), deck.pop()])
         dealer_hand = session.get('dealer_hand', [deck.pop(), deck.pop()])
 
         # Save game state
-        session['deck'] = deck
         session['player_hand'] = player_hand
         session['dealer_hand'] = dealer_hand
 
@@ -256,9 +273,19 @@ def games():
     user = User.query.get(user_id)
     return render_template('games/games.html', user=user)
 
+@app.route('/admin')
+def admin_dashboard():
+    user_id = session.get('user_id')
+    if not user_id:
+        return redirect(url_for('login'))
+    user = User.query.get(user_id)
+    if not user.is_admin:
+        flash("Access denied!")
+        return redirect(url_for('home'))
+    return render_template('admin/dashboard.html', user=user)
+
 if __name__ == '__main__':
     if not os.path.exists('casino.db'):
         with app.app_context():
             db.create_all()
     app.run(debug=True)
-

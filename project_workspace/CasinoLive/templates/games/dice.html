@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dice Game</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Dice Game</h1>
+        <p>Welcome, {{ user.username }}! Your current balance is ${{ user.balance }}.</p>
+
+        <form method="POST">
+            <label for="bet">Enter your bet amount:</label>
+            <input type="number" id="bet" name="bet" min="1" max="{{ user.balance }}" required>
+            <button type="submit">Roll Dice</button>
+        </form>
+
+        {% if result %}
+            <div class="result">
+                <p>{{ result }}</p>
+            </div>
+        {% endif %}
+    </div>
+</body>
+</html>

@@ -1,34 +1,40 @@
-# CasinoLive
+# Running the Project with Docker
 
-CasinoLive is a social casino game designed to provide an authentic casino experience with engaging social interactions and rewarding progression. This project is currently in the pre-production phase, with plans to develop core casino games, social systems, and live service features.
+To run this project using Docker, follow these steps:
 
-## Features
-- **Core Casino Games**: Poker, Blackjack, Roulette, Slots
-- **Social Systems**: Friends list, player profiles, groups/clubs, gifting
-- **Progression & Economy**: XP-based leveling, virtual currency, unlockables
-- **Live Service Features**: Tournaments, themed events, daily challenges
+## Prerequisites
 
-## Project Structure
-- `src/`: Contains the source code for the project.
-  - `games/`: Modules for individual casino games (e.g., Poker, Blackjack).
-  - `social/`: Modules for social features like friends list and player profiles.
-  - `economy/`: Modules for progression and virtual currency systems.
-  - `ui/`: UI components and screens.
-- `tests/`: Unit tests for the project.
-- `docs/`: Documentation for the project, including the Game Design Document (GDD).
+- Ensure Docker and Docker Compose are installed on your system.
+- Verify that the `Requirements.txt` file contains all necessary Python dependencies.
 
-## Getting Started
-### Prerequisites
-- Python 3.9 or higher
-- Virtual environment (recommended)
+## Environment Variables
 
-### Installation
-1. Clone the repository:
+- `FLASK_APP`: Set to `app.py` to specify the Flask application entry point.
+- Database service:
+  - `POSTGRES_USER`: Database username (default: `user`).
+  - `POSTGRES_PASSWORD`: Database password (default: `password`).
+  - `POSTGRES_DB`: Database name (default: `casino`).
+
+## Build and Run Instructions
+
+1. Build and start the services:
+
    ```bash
-   git clone https://github.com/yourusername/CasinoLive.git
-   cd CasinoLive
+   docker-compose up --build
    ```
 
-## Usage
+2. Access the application:
 
-Describe how to use the project. Include code examples if necessary.
+   - Application: [http://localhost:5000](http://localhost:5000)
+
+## Exposed Ports
+
+- Application service: `5000` (mapped to host `5000`).
+- Database service: Not exposed to the host.
+
+## Notes
+
+- The application code is located in the `./` directory.
+- The database data is persisted in the `db_data` volume.
+
+For further details, refer to the existing documentation in the repository.

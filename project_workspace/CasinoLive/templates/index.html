@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Casino Live</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/styles.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Welcome to Casino Live</h1>
+        {% if user %}
+            <p>Hello, {{ user.username }}! <a href="{{ url_for('logout') }}">Logout</a></p>
+        {% else %}
+            <p><a href="{{ url_for('login') }}">Login</a></p>
+        {% endif %}
+    </header>
+    <main>
+        <h2>Available Games</h2>
+        {% if user %}
+            <ul>
+                <li><a href="{{ url_for('roll_dice') }}">Roll Dice</a></li>
+                <li><a href="{{ url_for('slot_machine') }}">Slot Machine</a></li>
+                <li><a href="{{ url_for('poker') }}">Poker</a></li>
+                <li><a href="{{ url_for('blackjack') }}">Blackjack</a></li>
+            </ul>
+        {% else %}
+            <p>Please log in to access the games.</p>
+        {% endif %}
+    </main>
+    <footer>
+        <p>&copy; 2023 Casino Live. All rights reserved.</p>
+    </footer>
+</body>
+</html>
