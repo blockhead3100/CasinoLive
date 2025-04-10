@@ -20,7 +20,12 @@ To run this project using Docker, follow these steps:
 1. Build and start the services:
 
    ```bash
+<<<<<<< HEAD
    docker-compose up --build
+=======
+   git clone https://github.com/blockhead3100/CasinoLive.git
+   cd CasinoLive
+>>>>>>> 179265d7514c32bf873730b9b16977c121507c6d
    ```
 
 2. Access the application:
