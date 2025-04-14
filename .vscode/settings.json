@@ -17,5 +17,6 @@
         "socketio",
         "sqlalchemy",
         "stylesheet"
-    ]
+    ],
+    "CodeGPT.apiKey": "CodeGPT Plus Beta"
 }

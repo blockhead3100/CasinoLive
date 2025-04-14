@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+@layer base {
+  body {
+    @apply bg-[#F8FAFC] text-[#1F2937] font-sans; /* Ensure 'font-sans' is applied */
+  }
+}
+
+@layer components {
+  .btn {
+    @apply px-4 py-2 rounded-lg font-medium transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+  
+  .btn-primary {
+    @apply bg-[#2563EB] text-white hover:bg-[#1D4ED8];
+  }
+
+  .input-field {
+    @apply w-full px-4 py-2 rounded-lg border border-gray-200 focus:ring-2 focus:ring-[#60A5FA] focus:border-transparent outline-none;
+  }
+
+  .message-bubble {
+    @apply max-w-[70%] rounded-lg px-4 py-2 mb-2;
+  }
+
+  .message-sent {
+    @apply bg-[#2563EB] text-white ml-auto;
+  }
+
+  .message-received {
+    @apply bg-white shadow-sm;
+  }
+}
+
+@layer utilities {
+  .scrollbar-hide {
+    -ms-overflow-style: none; /* Internet Explorer 10+ */
+    -webkit-overflow-scrolling: touch; /* Smooth scrolling for touch devices */
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none; /* Hide scrollbar for WebKit browsers */
+  }
+}
