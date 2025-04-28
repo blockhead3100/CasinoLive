@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Blackjack</title>
+</head>
+<body>
+    <h1>Blackjack</h1>
+    <p>Welcome, {{ user.username }} | Balance: ${{ user.balance }}</p>
+
+    {% if result %}
+        <h2>Result: {{ result }}</h2>
+    {% endif %}
+
+    <form method="POST">
+        <label for="bet">Enter Bet Amount:</label>
+        <input type="number" name="bet" id="bet" min="1" max="{{ user.balance }}" required>
+        <button type="submit">Place Bet</button>
+    </form>
+
+    {% if player_hand and dealer_hand %}
+        <h3>Your Hand: {{ player_hand }}</h3>
+        <h3>Dealer's Hand: {{ dealer_hand }}</h3>
+    {% endif %}
+
+    <a href="/">Back to Home</a>
+</body>
+</html>
+
+@app.route('/poker/<username>', methods=['GET', 'POST'])
+def poker(username):
+    user = User.query.filter_by(username=username).first()
+    if not user:
+        return f"User {username} not found!", 404
+
+    if request.method == 'POST':
+        # Reveal the next stage of community cards
+        stage = session.get('stage', 0)
+        community_cards = session.get('community_cards', [])
+        deck = session.get('deck', [])
+
+        if stage == 0:  # Flop
+            community_cards.extend([deck.pop() for _ in range(3)])
+        elif stage == 1:  # Turn
+            community_cards.append(deck.pop())
+        elif stage == 2:  # River
+            community_cards.append(deck.pop())
+        else:
+            return "Game over! All cards have been dealt."
+
+        session['stage'] = stage + 1
+        session['community_cards'] = community_cards
+        session['deck'] = deck
+
+        return render_template('poker_game.html', player_hand=session['player_hand'], community_cards=community_cards)
+
+    # Initialize a new game
+    deck = [f"{rank}{suit}" for rank in "23456789TJQKA" for suit in "♠♥♦♣"]
+    random.shuffle(deck)
+    player_hand = [deck.pop(), deck.pop()]
+    community_cards = []
+
+    # Save game state
+    session['deck'] = deck
+    session['player_hand'] = player_hand
+    session['community_cards'] = community_cards
+    session['stage'] = 0
+
+    return render_template('poker_game.html', player_hand=player_hand, community_cards=community_cards)

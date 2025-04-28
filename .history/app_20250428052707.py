@@ -1,0 +1,321 @@
+from flask import Flask, render_template, request, redirect, url_for, session, flash
+from flask_sqlalchemy import SQLAlchemy
+from flask_migrate import Migrate
+from werkzeug.security import generate_password_hash, check_password_hash
+import random
+import os
+import logging
+import openai
+
+# Add this after importing os
+if not os.environ.get('SECRET_KEY'):
+    logging.warning("SECRET_KEY is not set in the environment. Using fallback key.")
+
+# Initialize OpenAI API
+openai.api_key = "your_openai_api_key"
+
+app = Flask(__name__)
+app.secret_key = os.getenv('SECRET_KEY', 'fallback_secret_key')
+
+# Database configuration
+app.config['SQLALCHEMY_DATABASE_URI'] = f"sqlite:///{os.path.abspath('casino.db')}"
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+db = SQLAlchemy(app)
+migrate = Migrate(app, db)
+
+# Define a User model
+class User(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(80), unique=True, nullable=False)
+    password = db.Column(db.String(200), nullable=False)  # Store hashed passwords
+    balance = db.Column(db.Float, default=0.0)
+    is_admin = db.Column(db.Boolean, default=False)  # Add this field
+
+@app.context_processor
+def inject_user():
+    user_id = session.get('user_id')
+    if (user_id):
+        user = User.query.get(user_id)
+        return {'user': user}
+    return {'user': None}
+
+@app.route('/')
+def home():
+    user_id = session.get('user_id')
+    if not user_id:
+        return redirect(url_for('login'))
+    user = User.query.get(user_id)
+    return render_template('index.html', user=user)
+
+def hash_password(password):
+    return generate_password_hash(password)
+
+@app.route('/register', methods=['GET', 'POST'])
+def register():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        hashed_password = hash_password(password)
+        new_user = User(username=username, password=hashed_password)
+        db.session.add(new_user)
+        db.session.commit()
+        flash("Account created successfully! Please log in.")
+        return redirect(url_for('login'))
+    return render_template('auth/register.html')
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    if request.method == 'POST':
+        username = request.form.get('username')
+        password = request.form.get('password')
+        user = User.query.filter_by(username=username).first()
+        if user and check_password_hash(user.password, password):
+            session['user_id'] = user.id
+            return redirect(url_for('home'))
+        else:
+            flash("Invalid username or password!")
+    return render_template('auth/login.html')
+
+@app.route('/logout')
+def logout():
+    session.pop('user_id', None)
+    return redirect(url_for('login'))
+
+@app.route('/roll-dice', methods=['GET', 'POST'])
+def roll_dice():
+    user_id = session.get('user_id')
+    if not user_id:
+        return redirect(url_for('login'))
+    user = User.query.get(user_id)
+
+    if request.method == 'POST':
+        bet = request.form.get('bet')
+        if not bet:
+            flash("Bet amount is required!")
+            return redirect(url_for('roll_dice'))
+        try:
+            bet = float(bet)
+        except ValueError:
+            flash("Invalid bet amount!")
+            return redirect(url_for('roll_dice'))
+
+        if bet < 1 or bet > user.balance:
+            flash("Bet must be between $1 and your current balance!")
+            return redirect(url_for('roll_dice'))
+
+        dice_roll = random.randint(1, 6)
+        if dice_roll > 3:
+            user.balance += bet
+            result = f"You rolled a {dice_roll}. You win ${bet}!"
+        else:
+            user.balance -= bet
+            result = f"You rolled a {dice_roll}. You lose ${bet}."
+        db.session.commit()
+        return render_template('dice.html', user=user, result=result)
+
+    return render_template('dice.html', user=user)
+
+@app.route('/slot-machine', methods=['GET', 'POST'])
+def slot_machine():
+    user_id = session.get('user_id')
+    if not user_id:
+        return redirect(url_for('login'))
+    user = User.query.get(user_id)
+
+    if request.method == 'POST':
+        symbols = ["🍒", "🍋", "🍊", "🍉", "⭐", "💎"]
+        reels = [random.choice(symbols) for _ in range(3)]
+
+        if len(set(reels)) == 1:
+            result = "Jackpot! You win $100!"
+            user.balance += 100
+        elif len(set(reels)) == 2:
+            result = "Small win! You win $10!"
+            user.balance += 10
+        else:
+            result = "You lose! Try again."
+            user.balance -= 5
+
+        db.session.commit()
+        return render_template('slot_machine_result.html', reels=reels, result=result, user=user)
+
+    return render_template('slot_machine.html', user=user)
+
+@app.route('/poker', methods=['GET', 'POST'])
+def poker():
+    user_id = session.get('user_id')
+    if not user_id:
+        return redirect(url_for('login'))
+    user = User.query.get(user_id)
+
+    if request.method == 'POST':
+        bet = request.form.get('bet')
+        if not bet:
+            flash("Bet amount is required!")
+            return redirect(url_for('poker'))
+        try:
+            bet = float(bet)
+        except ValueError:
+            flash("Invalid bet amount!")
+            return redirect(url_for('poker'))
+
+        if bet < 1 or bet > user.balance:
+            flash("Bet must be between $1 and your current balance!")
+            return redirect(url_for('poker'))
+
+        # Ensure deck is initialized
+        deck = session.get('deck')
+        if not deck:
+            deck = [f"{rank}{suit}" for rank in "23456789TJQKA" for suit in "♠♥♦♣"]
+            random.shuffle(deck)
+            session['deck'] = deck
+
+        stage = session.get('stage', 0)
+        community_cards = session.get('community_cards', [])
+        player_hand = session.get('player_hand', [])
+
+        if stage == 0:
+            community_cards.extend([deck.pop() for _ in range(3)])
+        elif stage == 1:
+            community_cards.append(deck.pop())
+        elif stage == 2:
+            community_cards.append(deck.pop())
+        else:
+            winner = evaluate_poker_hand(player_hand, community_cards)
+            if winner == "player":
+                user.balance += bet
+                result = f"You win ${bet}!"
+            else:
+                user.balance -= bet
+                result = f"You lose ${bet}."
+            db.session.commit()
+            return render_template('poker_result.html', result=result, player_hand=player_hand, community_cards=community_cards)
+
+        session['stage'] = stage + 1
+        session['community_cards'] = community_cards
+        session['deck'] = deck
+
+        return render_template('poker_game.html', player_hand=player_hand, community_cards=community_cards, user=user)
+
+    # Initialize a new game
+    deck = [f"{rank}{suit}" for rank in "23456789TJQKA" for suit in "♠♥♦♣"]
+    random.shuffle(deck)
+    player_hand = [deck.pop(), deck.pop()]
+    community_cards = []
+
+    session['deck'] = deck
+    session['player_hand'] = player_hand
+    session['community_cards'] = community_cards
+    session['stage'] = 0
+
+    return render_template('poker_game.html', player_hand=player_hand, community_cards=community_cards, user=user)
+
+def evaluate_poker_hand(player_hand, community_cards):
+    # Placeholder logic for poker hand evaluation
+    all_cards = player_hand + community_cards
+    ranks = [card[:-1] for card in all_cards]
+    if len(set(ranks)) < len(ranks):  # Simple pair detection
+        return "player"
+    return "dealer"
+
+@app.route('/blackjack', methods=['GET', 'POST'])
+def blackjack():
+    user_id = session.get('user_id')
+    if not user_id:
+        return redirect(url_for('login'))
+    user = User.query.get(user_id)
+
+    if request.method == 'POST':
+        bet = request.form.get('bet')
+        if not bet:
+            flash("Bet amount is required!")
+            return redirect(url_for('blackjack'))
+        try:
+            bet = float(bet)
+        except ValueError:
+            flash("Invalid bet amount!")
+            return redirect(url_for('blackjack'))
+
+        if bet < 1 or bet > user.balance:
+            flash("Bet must be between $1 and your current balance!")
+            return redirect(url_for('blackjack'))
+
+        # Initialize the game
+        deck = session.get('deck')
+        if not deck:
+            deck = [2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 11] * 4
+            random.shuffle(deck)
+            session['deck'] = deck
+
+        player_hand = session.get('player_hand', [deck.pop(), deck.pop()])
+        dealer_hand = session.get('dealer_hand', [deck.pop(), deck.pop()])
+
+        # Call AI for dealer's decision
+        dealer_decision = openai.Completion.create(
+            model="gpt-4",
+            prompt=f"Dealer's hand: {dealer_hand}. Player's hand: {player_hand}. What should the dealer do? (hit or stand)",
+            max_tokens=10
+        ).choices[0].text.strip()
+
+        if dealer_decision == "hit":
+            dealer_hand.append(deck.pop())
+
+        # Game logic
+        player_total = sum(player_hand)
+        dealer_total = sum(dealer_hand)
+
+        if player_total > 21:
+
+        db.session.commit()
+        return render_template('blackjack_game.html', user=user, result=result, player_hand=player_hand, dealer_hand=dealer_hand)
+
+    # Render the game page with the bet form
+    return render_template('blackjack_game.html', user=user)
+
+@app.route('/games')
+def games():
+    user_id = session.get('user_id')
+    if not user_id:
+        return redirect(url_for('login'))
+    user = User.query.get(user_id)
+    return render_template('games/games.html', user=user)
+
+@app.route('/admin')
+def admin_dashboard():
+    user_id = session.get('user_id')
+    if not user_id:
+        return redirect(url_for('login'))
+    user = User.query.get(user_id)
+    if not user.is_admin:
+        flash("Access denied!")
+        return redirect(url_for('home'))
+    return render_template('admin/dashboard.html', user=user)
+
+@app.route('/webhook', methods=['POST'])
+def webhook():
+    try:
+        # Parse the incoming JSON payload
+        data = request.get_json()
+        if not data:
+            return {"error": "Invalid payload"}, 400
+
+        # Log the received data (for debugging purposes)
+        app.logger.info(f"Webhook received: {data}")
+
+        # Process the data (customize this as needed)
+        # Example: Respond to a specific event
+        if data.get('event') == 'example_event':
+            app.logger.info("Processing example_event")
+
+        # Respond to the webhook
+        return {"message": "Webhook received successfully"}, 200
+
+    except Exception as e:
+        app.logger.error(f"Error processing webhook: {e}")
+        return {"error": "Internal server error"}, 500
+
+if __name__ == '__main__':
+    if not os.path.exists('casino.db'):
+        with app.app_context():
+            db.create_all()
+    app.run(debug=True)
