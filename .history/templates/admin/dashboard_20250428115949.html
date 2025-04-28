@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h1>Admin Dashboard</h1>
+
+<!-- Button to reset all user balances -->
+<form action="{{ url_for('reset_balances') }}" method="post">
+    <button type="submit" class="btn btn-danger">Reset All User Balances</button>
+</form>
+
+<!-- Add Points Form -->
+<h3>Add Points</h3>
+<form action="{{ url_for('add_points') }}" method="post">
+    <label for="username">Username:</label>
+    <input type="text" id="username" name="username" required>
+    <label for="points">Points to Add:</label>
+    <input type="number" id="points" name="points" required>
+    <button type="submit" class="btn btn-success">Add Points</button>
+</form>
+
+<!-- Subtract Points Form -->
+<h3>Subtract Points</h3>
+<form action="{{ url_for('subtract_points') }}" method="post">
+    <label for="username">Username:</label>
+    <input type="text" id="username" name="username" required>
+    <label for="points">Points to Subtract:</label>
+    <input type="number" id="points" name="points" required>
+    <button type="submit" class="btn btn-warning">Subtract Points</button>
+</form>
+
+<!-- Set Points Form -->
+<h3>Set Points</h3>
+<form action="{{ url_for('set_points') }}" method="post">
+    <label for="username">Username:</label>
+    <input type="text" id="username" name="username" required>
+    <label for="points">Set Points To:</label>
+    <input type="number" id="points" name="points" required>
+    <button type="submit" class="btn btn-primary">Set Points</button>
+</form>
+
+<!-- Chat toggle button -->
+<button id="chat-toggle" class="btn btn-primary">Toggle Chat</button>
+
+<!-- Chat container -->
+<div id="chat-container" style="display: none; margin-top: 20px;">
+    <h2>Chat</h2>
+    <p>Chat functionality coming soon...</p>
+</div>
+
+<script>
+    // JavaScript to toggle chat visibility
+    document.getElementById('chat-toggle').addEventListener('click', function() {
+        const chatContainer = document.getElementById('chat-container');
+        if (chatContainer.style.display === 'none') {
+            chatContainer.style.display = 'block';
+        } else {
+            chatContainer.style.display = 'none';
+        }
+    });
+</script>
+
+{% endblock %}

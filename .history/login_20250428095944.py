@@ -1,18 +1,9 @@
 from flask import Flask, render_template, request, redirect, url_for, flash
 from models import db, User
 from werkzeug.security import check_password_hash
-import os
 
 app = Flask(__name__)
 app.secret_key = "your_secret_key"  # Required for flashing messages
-
-# Ensure the database file exists in the correct location
-if not os.path.exists('instance'):
-    os.makedirs('instance')
-
-if not os.path.exists('instance/casino.db'):
-    open('instance/casino.db', 'w').close()
-
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///instance/casino.db'
 db.init_app(app)
 

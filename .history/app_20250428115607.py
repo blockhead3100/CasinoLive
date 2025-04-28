@@ -306,8 +306,7 @@ def admin_dashboard():
     if not user.is_admin:
         flash("Access denied!")
         return redirect(url_for('home'))
-    users = User.query.all()
-    return render_template('admin/dashboard.html', user=user, users=users)
+    return render_template('admin/dashboard.html', user=user)
 
 @app.route('/admin/reset-balances', methods=['POST'])
 def reset_balances():

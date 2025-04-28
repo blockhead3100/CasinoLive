@@ -18,13 +18,7 @@ openai.api_key = "your_openai_api_key"
 app = Flask(__name__)
 app.secret_key = os.getenv('SECRET_KEY', 'fallback_secret_key')
 
-# Ensure the database file exists in the correct location
-if not os.path.exists('instance'):
-    os.makedirs('instance')
-
-if not os.path.exists('instance/casino.db'):
-    open('instance/casino.db', 'w').close()
-
+# Database configuration
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///instance/casino.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 db = SQLAlchemy(app)
@@ -96,7 +90,10 @@ def logout():
 
 @app.route('/roll-dice', methods=['GET', 'POST'])
 def roll_dice():
-    user = User.query.first()  # Use the first user for now
+    user_id = session.get('user_id')
+    if not user_id:
+        return redirect(url_for('login'))
+    user = User.query.get(user_id)
 
     if request.method == 'POST':
         bet = request.form.get('bet')
@@ -120,10 +117,6 @@ def roll_dice():
         else:
             user.balance -= bet
             result = f"You rolled a {dice_roll}. You lose ${bet}."
-
-        if user.balance < 0:
-            user.balance = 0  # Reset balance to zero if it goes negative
-
         db.session.commit()
         return render_template('dice.html', user=user, result=result)
 
@@ -150,9 +143,7 @@ def slot_machine():
             result = "You lose! Try again."
             user.balance -= 5
 
-        if user.balance < 0:
-            user.balance = 0  # Reset balance to zero if it goes negative
-            db.session.commit()
+        db.session.commit()
         return render_template('slot_machine_result.html', reels=reels, result=result, user=user)
 
     return render_template('slot_machine.html', user=user)
@@ -204,9 +195,7 @@ def poker():
             else:
                 user.balance -= bet
                 result = f"You lose ${bet}."
-            if user.balance < 0:
-                user.balance = 0  # Reset balance to zero if it goes negative
-                db.session.commit()
+            db.session.commit()
             return render_template('poker_result.html', result=result, player_hand=player_hand, community_cards=community_cards)
 
         session['stage'] = stage + 1
@@ -238,7 +227,12 @@ def evaluate_poker_hand(player_hand, community_cards):
 
 @app.route('/blackjack', methods=['GET', 'POST'])
 def blackjack():
-    user = User.query.first()  # Use the first user for now
+    user_id = session.get('user_id')
+    if not user_id:
+        return redirect(url_for('login'))
+
+    with app.app_context():
+        user = db.session.get(User, user_id)
 
     if request.method == 'POST':
         bet = request.form.get('bet')
@@ -265,6 +259,16 @@ def blackjack():
         player_hand = session.get('player_hand', [deck.pop(), deck.pop()])
         dealer_hand = session.get('dealer_hand', [deck.pop(), deck.pop()])
 
+        # Call AI for dealer's decision
+        dealer_decision = openai.Completion.create(
+            model="gpt-4",
+            prompt=f"Dealer's hand: {dealer_hand}. Player's hand: {player_hand}. What should the dealer do? (hit or stand)",
+            max_tokens=10
+        ).choices[0].text.strip()
+
+        if dealer_decision == "hit":
+            dealer_hand.append(deck.pop())
+
         # Game logic
         player_total = sum(player_hand)
         dealer_total = sum(dealer_hand)
@@ -281,9 +285,7 @@ def blackjack():
         else:
             result = f"It's a tie! Your hand: {player_hand}, Dealer's hand: {dealer_hand}"
 
-        if user.balance < 0:
-            user.balance = 0  # Reset balance to zero if it goes negative
-            db.session.commit()
+        db.session.commit()
         return render_template('blackjack_game.html', user=user, result=result, player_hand=player_hand, dealer_hand=dealer_hand)
 
     # Render the game page with the bet form
@@ -306,89 +308,7 @@ def admin_dashboard():
     if not user.is_admin:
         flash("Access denied!")
         return redirect(url_for('home'))
-    users = User.query.all()
-    return render_template('admin/dashboard.html', user=user, users=users)
-
-@app.route('/admin/reset-balances', methods=['POST'])
-def reset_balances():
-    admin_user = User.query.filter_by(username="admin").first()
-    if not admin_user:
-        flash("Access denied! Only admin can perform this action.")
-        return redirect(url_for('admin_dashboard'))
-
-    # Reset all user balances to zero
-    users = User.query.all()
-    for user in users:
-        user.balance = 0.0
-    db.session.commit()
-
-    flash("All user balances have been reset to zero.")
-    return redirect(url_for('admin_dashboard'))
-
-@app.route('/admin/add-points', methods=['POST'])
-def add_points():
-    admin_user = User.query.filter_by(username="admin").first()
-    if not admin_user:
-        flash("Access denied! Only admin can perform this action.")
-        return redirect(url_for('admin_dashboard'))
-
-    username = request.form.get('username')
-    points = float(request.form.get('points', 0))
-
-    user = User.query.filter_by(username=username).first()
-    if not user:
-        flash("User not found.")
-        return redirect(url_for('admin_dashboard'))
-
-    user.balance += points
-    db.session.commit()
-
-    flash(f"Added {points} points to {username}. New balance: {user.balance}")
-    return redirect(url_for('admin_dashboard'))
-
-@app.route('/admin/subtract-points', methods=['POST'])
-def subtract_points():
-    admin_user = User.query.filter_by(username="admin").first()
-    if not admin_user:
-        flash("Access denied! Only admin can perform this action.")
-        return redirect(url_for('admin_dashboard'))
-
-    username = request.form.get('username')
-    points = float(request.form.get('points', 0))
-
-    user = User.query.filter_by(username=username).first()
-    if not user:
-        flash("User not found.")
-        return redirect(url_for('admin_dashboard'))
-
-    user.balance -= points
-    if user.balance < 0:
-        user.balance = 0  # Ensure no negative balance
-    db.session.commit()
-
-    flash(f"Subtracted {points} points from {username}. New balance: {user.balance}")
-    return redirect(url_for('admin_dashboard'))
-
-@app.route('/admin/set-points', methods=['POST'])
-def set_points():
-    admin_user = User.query.filter_by(username="admin").first()
-    if not admin_user:
-        flash("Access denied! Only admin can perform this action.")
-        return redirect(url_for('admin_dashboard'))
-
-    username = request.form.get('username')
-    points = float(request.form.get('points', 0))
-
-    user = User.query.filter_by(username=username).first()
-    if not user:
-        flash("User not found.")
-        return redirect(url_for('admin_dashboard'))
-
-    user.balance = points
-    db.session.commit()
-
-    flash(f"Set {username}'s balance to {points} points.")
-    return redirect(url_for('admin_dashboard'))
+    return render_template('admin/dashboard.html', user=user)
 
 @app.route('/webhook', methods=['POST'])
 def webhook():

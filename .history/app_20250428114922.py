@@ -306,8 +306,7 @@ def admin_dashboard():
     if not user.is_admin:
         flash("Access denied!")
         return redirect(url_for('home'))
-    users = User.query.all()
-    return render_template('admin/dashboard.html', user=user, users=users)
+    return render_template('admin/dashboard.html', user=user)
 
 @app.route('/admin/reset-balances', methods=['POST'])
 def reset_balances():
@@ -323,71 +322,6 @@ def reset_balances():
     db.session.commit()
 
     flash("All user balances have been reset to zero.")
-    return redirect(url_for('admin_dashboard'))
-
-@app.route('/admin/add-points', methods=['POST'])
-def add_points():
-    admin_user = User.query.filter_by(username="admin").first()
-    if not admin_user:
-        flash("Access denied! Only admin can perform this action.")
-        return redirect(url_for('admin_dashboard'))
-
-    username = request.form.get('username')
-    points = float(request.form.get('points', 0))
-
-    user = User.query.filter_by(username=username).first()
-    if not user:
-        flash("User not found.")
-        return redirect(url_for('admin_dashboard'))
-
-    user.balance += points
-    db.session.commit()
-
-    flash(f"Added {points} points to {username}. New balance: {user.balance}")
-    return redirect(url_for('admin_dashboard'))
-
-@app.route('/admin/subtract-points', methods=['POST'])
-def subtract_points():
-    admin_user = User.query.filter_by(username="admin").first()
-    if not admin_user:
-        flash("Access denied! Only admin can perform this action.")
-        return redirect(url_for('admin_dashboard'))
-
-    username = request.form.get('username')
-    points = float(request.form.get('points', 0))
-
-    user = User.query.filter_by(username=username).first()
-    if not user:
-        flash("User not found.")
-        return redirect(url_for('admin_dashboard'))
-
-    user.balance -= points
-    if user.balance < 0:
-        user.balance = 0  # Ensure no negative balance
-    db.session.commit()
-
-    flash(f"Subtracted {points} points from {username}. New balance: {user.balance}")
-    return redirect(url_for('admin_dashboard'))
-
-@app.route('/admin/set-points', methods=['POST'])
-def set_points():
-    admin_user = User.query.filter_by(username="admin").first()
-    if not admin_user:
-        flash("Access denied! Only admin can perform this action.")
-        return redirect(url_for('admin_dashboard'))
-
-    username = request.form.get('username')
-    points = float(request.form.get('points', 0))
-
-    user = User.query.filter_by(username=username).first()
-    if not user:
-        flash("User not found.")
-        return redirect(url_for('admin_dashboard'))
-
-    user.balance = points
-    db.session.commit()
-
-    flash(f"Set {username}'s balance to {points} points.")
     return redirect(url_for('admin_dashboard'))
 
 @app.route('/webhook', methods=['POST'])

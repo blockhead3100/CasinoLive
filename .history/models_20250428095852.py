@@ -3,14 +3,6 @@ from flask_sqlalchemy import SQLAlchemy
 import os
 
 app = Flask(__name__)
-
-# Ensure the database file exists in the correct location
-if not os.path.exists('instance'):
-    os.makedirs('instance')
-
-if not os.path.exists('instance/casino.db'):
-    open('instance/casino.db', 'w').close()
-
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///instance/casino.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
